@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "FB RealCheck",
+  "description": "Phân tích độ thật - ảo của lượt thích trên bài đăng Facebook để phát hiện buff like.",
+  "version": "1.0.0",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.facebook.com/*",
+    "http://*.facebook.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.facebook.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "FB RealCheck",
+    "default_popup": "popup.html"
+  }
+}
