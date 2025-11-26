@@ -173,7 +173,44 @@
     return counts;
   }
 
-  function renderModal(results, summary, engagement) {
+  function collectVisibleLikers() {
+    const dialog = document.querySelector('[role="dialog"]');
+    if (!dialog) return [];
+
+    const links = Array.from(dialog.querySelectorAll('a[role="link"]'));
+    const profiles = [];
+    links.forEach((link) => {
+      const nameEl = link.querySelector('strong, span');
+      const name = (nameEl && nameEl.textContent || '').trim();
+      if (!name) return;
+
+      const avatarPresent = !!link.querySelector('img, image, svg[aria-label]');
+      const profileUrl = link.href;
+      profiles.push({
+        name,
+        profileUrl,
+        avatarPresent
+      });
+    });
+
+    const uniqueByUrl = new Map();
+    profiles.forEach((p) => {
+      if (!uniqueByUrl.has(p.profileUrl)) {
+        uniqueByUrl.set(p.profileUrl, p);
+      }
+    });
+
+    return Array.from(uniqueByUrl.values());
+  }
+
+  function resetModalIfAny() {
+    const modal = document.getElementById(MODAL_ID);
+    if (modal) {
+      modal.remove();
+    }
+  }
+
+  function renderModal(results, summary, engagement, options = {}) {
     let modal = document.getElementById(MODAL_ID);
     if (!modal) {
       modal = document.createElement('div');
@@ -234,6 +271,7 @@
         <div><strong>Shares:</strong> ${engagement.shares || 'Không tìm thấy'}</div>
       </div>
       <p class="rc-engagement-note">So sánh tỉ lệ like/bình luận/chia sẻ để phát hiện chênh lệch bất thường.</p>
+      ${options.dataSource === 'sample' ? '<p class="rc-engagement-note">Không tìm thấy danh sách like trên trang, đang dùng dữ liệu mẫu để minh hoạ.</p>' : ''}
     `;
 
     const resultsEl = modal.querySelector('#rc-results');
@@ -270,12 +308,29 @@
     btn.textContent = 'RealCheck';
     btn.title = 'Phân tích like giả trên bài đăng';
     btn.addEventListener('click', () => {
-      const evaluated = sampleDataset.map(evaluateLiker);
+      const scraped = collectVisibleLikers();
+      const dataset = scraped.length ? scraped : sampleDataset;
+      const evaluated = dataset.map(evaluateLiker);
       const summary = summarizeResults(evaluated);
-      renderModal(evaluated, summary, estimateEngagementFromPage());
+      renderModal(evaluated, summary, estimateEngagementFromPage(), {
+        dataSource: scraped.length ? 'live' : 'sample'
+      });
     });
     document.body.appendChild(btn);
   }
 
+  function watchUrlChanges() {
+    let lastUrl = location.href;
+    const observer = new MutationObserver(() => {
+      if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        resetModalIfAny();
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   injectTrigger();
+  watchUrlChanges();
 })();

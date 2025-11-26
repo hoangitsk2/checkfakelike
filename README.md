@@ -12,7 +12,8 @@ FB RealCheck là tiện ích mở rộng (Manifest V3) giúp người dùng nhan
 ## Cài đặt thủ công
 1. Mở Chrome/Edge → `chrome://extensions` (bật chế độ Nhà phát triển).
 2. Chọn **Tải tiện ích đã giải nén** và trỏ tới thư mục `src`.
-3. Truy cập Facebook, mở một bài đăng và nhấn nút **RealCheck** ở góc dưới phải để xem báo cáo.
+3. Truy cập Facebook, mở một bài đăng.
+4. Bấm vào bộ đếm like/reaction để mở danh sách người đã tương tác (để công cụ đọc được dữ liệu trực tiếp), sau đó nhấn nút **RealCheck** ở góc dưới phải để xem báo cáo. Nếu không mở danh sách, công cụ sẽ dùng dữ liệu mẫu minh hoạ.
 
 ## Cách phân tích dữ liệu thủ công
 - Trong cửa sổ RealCheck, dán JSON dạng:
