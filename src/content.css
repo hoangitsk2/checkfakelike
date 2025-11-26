@@ -213,6 +213,11 @@
   font-weight: 600;
 }
 
+#rc-load-scraped {
+  background: #10b981;
+  color: #fff;
+}
+
 #rc-load-sample {
   background: #e5e7eb;
 }

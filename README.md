@@ -6,7 +6,7 @@ FB RealCheck là tiện ích mở rộng (Manifest V3) giúp người dùng nhan
 - Nút nổi **RealCheck** xuất hiện trên trang Facebook để mở bảng điều khiển phân tích.
 - Bộ chấm điểm rủi ro cho từng tài khoản like dựa trên: độ tuổi tài khoản, số bạn bè, hoạt động gần đây, trạng thái ảnh đại diện và dấu hiệu tên ngẫu nhiên.
 - Phân tích tỉ lệ like/bình luận/chia sẻ hiển thị trên trang để gợi ý bất thường về tương tác.
-- Cho phép nhập danh sách like thủ công dạng JSON để đánh giá dữ liệu xuất từ công cụ quản trị.
+- Cho phép nhập danh sách like thủ công dạng JSON để đánh giá dữ liệu xuất từ công cụ quản trị hoặc tự điền từ danh sách đang mở trên Facebook.
 - Kèm sẵn bộ dữ liệu mẫu để thử nghiệm nhanh.
 
 ## Cài đặt thủ công
@@ -16,7 +16,10 @@ FB RealCheck là tiện ích mở rộng (Manifest V3) giúp người dùng nhan
 4. Bấm vào bộ đếm like/reaction để mở danh sách người đã tương tác (để công cụ đọc được dữ liệu trực tiếp), sau đó nhấn nút **RealCheck** ở góc dưới phải để xem báo cáo. Nếu không mở danh sách, công cụ sẽ dùng dữ liệu mẫu minh hoạ.
 
 ## Cách phân tích dữ liệu thủ công
-- Trong cửa sổ RealCheck, dán JSON dạng:
+Trong cửa sổ RealCheck, bạn có 3 lựa chọn:
+- **Lấy dữ liệu từ trang:** mở danh sách người đã reaction, bấm vào nút này để tiện ích tự lấy thông tin hiển thị và điền vào ô JSON (không cần tải file ngoài).
+- **Dùng dữ liệu mẫu:** phù hợp để thử nhanh nếu chưa mở được danh sách like.
+- **Nhập JSON thủ công:** dán JSON dạng:
   ```json
   [
     {"name":"User A","accountAgeDays":120,"friendsCount":200,"recentPosts":4,"avatarPresent":true},

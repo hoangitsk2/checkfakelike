@@ -231,8 +231,10 @@
           <div class="rc-input">
             <h3>Nhập danh sách like (JSON)</h3>
             <p>Mỗi phần tử gồm các trường: <code>name</code>, <code>accountAgeDays</code>, <code>friendsCount</code>, <code>recentPosts</code>, <code>avatarPresent</code>, <code>profileUrl</code>.</p>
+            <p class="rc-engagement-note">Nếu không lấy được file JSON, hãy mở danh sách like/reaction trên bài đăng và bấm "Lấy dữ liệu từ trang" để tự động điền.</p>
             <textarea id="rc-input-area" rows="6" placeholder='[ {"name":"User A","accountAgeDays":120,"friendsCount":200,"recentPosts":4,"avatarPresent":true} ]'></textarea>
             <div class="rc-input-actions">
+              <button id="rc-load-scraped">Lấy dữ liệu từ trang</button>
               <button id="rc-load-sample">Tải dữ liệu mẫu</button>
               <button id="rc-run">Phân tích</button>
             </div>
@@ -279,6 +281,17 @@
     results.forEach((profile) => resultsEl.appendChild(renderProfileRow(profile)));
 
     modal.querySelector('#rc-close').addEventListener('click', () => modal.remove());
+
+    modal.querySelector('#rc-load-scraped').addEventListener('click', () => {
+      const scraped = collectVisibleLikers();
+      if (!scraped.length) {
+        alert('Không tìm thấy danh sách like đang mở. Hãy bấm vào bộ đếm reaction để mở hộp thoại rồi thử lại.');
+        return;
+      }
+
+      const input = modal.querySelector('#rc-input-area');
+      input.value = JSON.stringify(scraped, null, 2);
+    });
 
     modal.querySelector('#rc-load-sample').addEventListener('click', () => {
       const input = modal.querySelector('#rc-input-area');
