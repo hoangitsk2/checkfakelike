@@ -19,6 +19,7 @@ FB RealCheck là tiện ích mở rộng (Manifest V3) giúp người dùng nhan
 Trong cửa sổ RealCheck, bạn có 3 lựa chọn:
 - **Lấy dữ liệu từ trang:** mở danh sách người đã reaction, bấm vào nút này để tiện ích tự lấy thông tin hiển thị và điền vào ô JSON (không cần tải file ngoài).
 - **Sao chép/Tải JSON:** sau khi ô JSON đã được điền (từ trang hoặc nhập thủ công), có thể sao chép vào clipboard hoặc tải xuống file `realcheck-likers.json` để lưu trữ/chia sẻ.
+- **Dùng Graph API (nếu có access token):** nhập Post ID/URL và token App/User, bấm **Gọi Graph API** để tiện ích lấy danh sách reaction trực tiếp từ API (token được lưu cục bộ, không gửi ra ngoài). Dữ liệu có thể sao chép/tải xuống tương tự.
 - **Dùng dữ liệu mẫu:** phù hợp để thử nhanh nếu chưa mở được danh sách like.
 - **Nhập JSON thủ công:** dán JSON dạng:
   ```json

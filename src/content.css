@@ -206,6 +206,53 @@
   flex-wrap: wrap;
 }
 
+.rc-api-box {
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 10px;
+  margin: 10px 0;
+}
+
+.rc-api-header {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.rc-api-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.rc-api-field input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+.rc-api-actions {
+  align-items: center;
+  justify-content: space-between;
+}
+
+#rc-fetch-graph {
+  background: #0ea5e9;
+  color: #fff;
+}
+
+#rc-fetch-graph:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.rc-api-note {
+  color: #4b5563;
+  font-size: 12px;
+}
+
 .rc-input-actions button {
   padding: 10px 12px;
   border-radius: 8px;

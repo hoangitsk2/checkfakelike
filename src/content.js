@@ -1,6 +1,7 @@
 (function () {
   const BUTTON_ID = 'rc-floating-trigger';
   const MODAL_ID = 'rc-modal';
+  const TOKEN_STORAGE_KEY = 'rc_graph_token';
 
   if (document.getElementById(BUTTON_ID)) {
     return;
@@ -127,6 +128,77 @@
     return summary;
   }
 
+  function extractPostId(input) {
+    if (!input) return null;
+    const trimmed = input.trim();
+
+    const fbidMatch = trimmed.match(/(?:fbid=|story_fbid=)(\d+)/);
+    if (fbidMatch) return fbidMatch[1];
+
+    const postPathMatch = trimmed.match(/\/posts\/([0-9]+)/);
+    if (postPathMatch) return postPathMatch[1];
+
+    const videoMatch = trimmed.match(/\/videos\/([0-9]+)/);
+    if (videoMatch) return videoMatch[1];
+
+    const reelMatch = trimmed.match(/\/reel\/([0-9]+)/);
+    if (reelMatch) return reelMatch[1];
+
+    const permalinkMatch = trimmed.match(/\/permalink\/([0-9]+)/);
+    if (permalinkMatch) return permalinkMatch[1];
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        const url = new URL(trimmed);
+        const idFromPath = url.pathname.match(/(\d{8,})/);
+        if (idFromPath) return idFromPath[1];
+      } catch (err) {
+        // ignore parse errors
+      }
+    }
+
+    return /^\d{8,}$/.test(trimmed) ? trimmed : null;
+  }
+
+  async function fetchReactionsFromGraph(postInput, token) {
+    const postId = extractPostId(postInput);
+    if (!postId) {
+      throw new Error('Không xác định được post ID từ URL/ID bạn nhập.');
+    }
+    if (!token) {
+      throw new Error('Vui lòng nhập access token của ứng dụng hoặc user.');
+    }
+
+    let url = `https://graph.facebook.com/v18.0/${postId}/reactions?fields=id,name,link,pic&limit=5000&access_token=${encodeURIComponent(token)}`;
+    const all = [];
+    let safetyCount = 0;
+
+    while (url && safetyCount < 20) {
+      safetyCount += 1;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (!resp.ok) {
+        const message = data.error?.message || resp.statusText;
+        throw new Error(message);
+      }
+
+      const chunk = (data.data || []).map((item) => ({
+        name: item.name,
+        profileUrl: item.link,
+        avatarPresent: !!item.pic
+      }));
+      all.push(...chunk);
+      url = data.paging?.next || null;
+    }
+
+    if (safetyCount >= 20 && url) {
+      throw new Error('Dữ liệu quá lớn, dừng sau 20 trang phân trang để tránh treo trình duyệt.');
+    }
+
+    localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    return all;
+  }
+
   function renderProfileRow(profile) {
     const row = document.createElement('div');
     row.className = 'rc-result-row';
@@ -232,6 +304,21 @@
             <h3>Nhập danh sách like (JSON)</h3>
             <p>Mỗi phần tử gồm các trường: <code>name</code>, <code>accountAgeDays</code>, <code>friendsCount</code>, <code>recentPosts</code>, <code>avatarPresent</code>, <code>profileUrl</code>.</p>
             <p class="rc-engagement-note">Nếu không lấy được file JSON, hãy mở danh sách like/reaction trên bài đăng, bấm "Lấy dữ liệu từ trang" để điền, sau đó dùng "Sao chép JSON" hoặc "Tải JSON".</p>
+            <div class="rc-api-box">
+              <div class="rc-api-header">Có access token Facebook? Hãy dùng Graph API để tải danh sách reaction.</div>
+              <label class="rc-api-field">
+                <span>Post ID hoặc URL bài viết</span>
+                <input id="rc-post-id" placeholder="Ví dụ: 1234567890123456 hoặc https://www.facebook.com/permalink/..." />
+              </label>
+              <label class="rc-api-field">
+                <span>Access token (App/User)</span>
+                <input id="rc-access-token" placeholder="EAAB..." />
+              </label>
+              <div class="rc-input-actions rc-api-actions">
+                <button id="rc-fetch-graph">Gọi Graph API</button>
+                <span class="rc-api-note">Token được lưu cục bộ, không gửi ra ngoài.</span>
+              </div>
+            </div>
             <textarea id="rc-input-area" rows="6" placeholder='[ {"name":"User A","accountAgeDays":120,"friendsCount":200,"recentPosts":4,"avatarPresent":true} ]'></textarea>
             <div class="rc-input-actions">
               <button id="rc-load-scraped">Lấy dữ liệu từ trang</button>
@@ -282,9 +369,16 @@
     resultsEl.innerHTML = '';
     results.forEach((profile) => resultsEl.appendChild(renderProfileRow(profile)));
 
-    modal.querySelector('#rc-close').addEventListener('click', () => modal.remove());
+    const postInput = modal.querySelector('#rc-post-id');
+    const tokenInput = modal.querySelector('#rc-access-token');
+    const savedToken = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (savedToken && tokenInput && !tokenInput.value) {
+      tokenInput.value = savedToken;
+    }
 
-    modal.querySelector('#rc-load-scraped').addEventListener('click', () => {
+    modal.querySelector('#rc-close').onclick = () => modal.remove();
+
+    modal.querySelector('#rc-load-scraped').onclick = () => {
       const scraped = collectVisibleLikers();
       if (!scraped.length) {
         alert('Không tìm thấy danh sách like đang mở. Hãy bấm vào bộ đếm reaction để mở hộp thoại rồi thử lại.');
@@ -293,9 +387,9 @@
 
       const input = modal.querySelector('#rc-input-area');
       input.value = JSON.stringify(scraped, null, 2);
-    });
+    };
 
-    modal.querySelector('#rc-copy-json').addEventListener('click', async () => {
+    modal.querySelector('#rc-copy-json').onclick = async () => {
       const data = modal.querySelector('#rc-input-area').value.trim();
       if (!data) {
         alert('Không có dữ liệu để sao chép. Hãy lấy dữ liệu từ trang hoặc nhập JSON.');
@@ -307,9 +401,9 @@
       } catch (err) {
         alert('Trình duyệt chặn sao chép tự động, bạn có thể chọn và sao chép thủ công.');
       }
-    });
+    };
 
-    modal.querySelector('#rc-download-json').addEventListener('click', () => {
+    modal.querySelector('#rc-download-json').onclick = () => {
       const data = modal.querySelector('#rc-input-area').value.trim();
       if (!data) {
         alert('Không có dữ liệu để tải xuống. Hãy lấy dữ liệu từ trang hoặc nhập JSON.');
@@ -323,14 +417,14 @@
       a.download = 'realcheck-likers.json';
       a.click();
       URL.revokeObjectURL(url);
-    });
+    };
 
-    modal.querySelector('#rc-load-sample').addEventListener('click', () => {
+    modal.querySelector('#rc-load-sample').onclick = () => {
       const input = modal.querySelector('#rc-input-area');
       input.value = JSON.stringify(sampleDataset, null, 2);
-    });
+    };
 
-    modal.querySelector('#rc-run').addEventListener('click', () => {
+    modal.querySelector('#rc-run').onclick = () => {
       const input = modal.querySelector('#rc-input-area').value.trim();
       if (!input) {
         alert('Vui lòng nhập danh sách like ở dạng JSON.');
@@ -344,7 +438,28 @@
       } catch (err) {
         alert('Dữ liệu không hợp lệ: ' + err.message);
       }
-    });
+    };
+
+    modal.querySelector('#rc-fetch-graph').onclick = async () => {
+      const postValue = postInput?.value || '';
+      const tokenValue = tokenInput?.value || '';
+      const button = modal.querySelector('#rc-fetch-graph');
+      button.disabled = true;
+      button.textContent = 'Đang tải...';
+      try {
+        const fetched = await fetchReactionsFromGraph(postValue, tokenValue);
+        if (!fetched.length) {
+          alert('Không nhận được dữ liệu reaction nào từ Graph API.');
+        }
+        const input = modal.querySelector('#rc-input-area');
+        input.value = JSON.stringify(fetched, null, 2);
+      } catch (err) {
+        alert('Lỗi khi gọi Graph API: ' + err.message);
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Gọi Graph API';
+      }
+    };
   }
 
   function injectTrigger() {

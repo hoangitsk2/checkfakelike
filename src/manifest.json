@@ -10,7 +10,8 @@
   ],
   "host_permissions": [
     "https://*.facebook.com/*",
-    "http://*.facebook.com/*"
+    "http://*.facebook.com/*",
+    "https://graph.facebook.com/*"
   ],
   "content_scripts": [
     {
