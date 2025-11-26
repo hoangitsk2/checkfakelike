@@ -203,6 +203,7 @@
   margin-top: 8px;
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .rc-input-actions button {
@@ -216,6 +217,16 @@
 #rc-load-scraped {
   background: #10b981;
   color: #fff;
+}
+
+#rc-copy-json {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+#rc-download-json {
+  background: #e0f2fe;
+  color: #075985;
 }
 
 #rc-load-sample {

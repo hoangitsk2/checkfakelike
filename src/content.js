@@ -231,10 +231,12 @@
           <div class="rc-input">
             <h3>Nhập danh sách like (JSON)</h3>
             <p>Mỗi phần tử gồm các trường: <code>name</code>, <code>accountAgeDays</code>, <code>friendsCount</code>, <code>recentPosts</code>, <code>avatarPresent</code>, <code>profileUrl</code>.</p>
-            <p class="rc-engagement-note">Nếu không lấy được file JSON, hãy mở danh sách like/reaction trên bài đăng và bấm "Lấy dữ liệu từ trang" để tự động điền.</p>
+            <p class="rc-engagement-note">Nếu không lấy được file JSON, hãy mở danh sách like/reaction trên bài đăng, bấm "Lấy dữ liệu từ trang" để điền, sau đó dùng "Sao chép JSON" hoặc "Tải JSON".</p>
             <textarea id="rc-input-area" rows="6" placeholder='[ {"name":"User A","accountAgeDays":120,"friendsCount":200,"recentPosts":4,"avatarPresent":true} ]'></textarea>
             <div class="rc-input-actions">
               <button id="rc-load-scraped">Lấy dữ liệu từ trang</button>
+              <button id="rc-copy-json">Sao chép JSON</button>
+              <button id="rc-download-json">Tải JSON</button>
               <button id="rc-load-sample">Tải dữ liệu mẫu</button>
               <button id="rc-run">Phân tích</button>
             </div>
@@ -291,6 +293,36 @@
 
       const input = modal.querySelector('#rc-input-area');
       input.value = JSON.stringify(scraped, null, 2);
+    });
+
+    modal.querySelector('#rc-copy-json').addEventListener('click', async () => {
+      const data = modal.querySelector('#rc-input-area').value.trim();
+      if (!data) {
+        alert('Không có dữ liệu để sao chép. Hãy lấy dữ liệu từ trang hoặc nhập JSON.');
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(data);
+        alert('Đã sao chép JSON vào clipboard.');
+      } catch (err) {
+        alert('Trình duyệt chặn sao chép tự động, bạn có thể chọn và sao chép thủ công.');
+      }
+    });
+
+    modal.querySelector('#rc-download-json').addEventListener('click', () => {
+      const data = modal.querySelector('#rc-input-area').value.trim();
+      if (!data) {
+        alert('Không có dữ liệu để tải xuống. Hãy lấy dữ liệu từ trang hoặc nhập JSON.');
+        return;
+      }
+
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'realcheck-likers.json';
+      a.click();
+      URL.revokeObjectURL(url);
     });
 
     modal.querySelector('#rc-load-sample').addEventListener('click', () => {
