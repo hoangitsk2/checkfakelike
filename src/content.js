@@ -376,7 +376,16 @@
       tokenInput.value = savedToken;
     }
 
-    modal.querySelector('#rc-close').onclick = () => modal.remove();
+    if (postInput && !postInput.value) {
+      postInput.value = location.href;
+    }
+
+    modal.querySelector('#rc-close').onclick = () => {
+      modal.remove();
+      if (window.updateTriggerState) {
+        window.updateTriggerState(false);
+      }
+    };
 
     modal.querySelector('#rc-load-scraped').onclick = () => {
       const scraped = collectVisibleLikers();
@@ -467,7 +476,15 @@
     btn.id = BUTTON_ID;
     btn.textContent = 'RealCheck';
     btn.title = 'Phân tích like giả trên bài đăng';
-    btn.addEventListener('click', () => {
+
+    function toggleModal() {
+      const modal = document.getElementById(MODAL_ID);
+      if (modal) {
+        modal.remove();
+        updateTriggerState(false);
+        return;
+      }
+
       const scraped = collectVisibleLikers();
       const dataset = scraped.length ? scraped : sampleDataset;
       const evaluated = dataset.map(evaluateLiker);
@@ -475,8 +492,19 @@
       renderModal(evaluated, summary, estimateEngagementFromPage(), {
         dataSource: scraped.length ? 'live' : 'sample'
       });
-    });
+      updateTriggerState(true);
+    }
+
+    btn.addEventListener('click', toggleModal);
     document.body.appendChild(btn);
+
+    function updateTriggerState(isOpen) {
+      btn.dataset.rcOpen = isOpen ? 'true' : 'false';
+      btn.textContent = isOpen ? 'Đóng RealCheck' : 'RealCheck';
+      btn.title = isOpen ? 'Bấm để thu cửa sổ RealCheck' : 'Phân tích like giả trên bài đăng';
+    }
+
+    window.updateTriggerState = updateTriggerState;
   }
 
   function watchUrlChanges() {
@@ -485,6 +513,9 @@
       if (location.href !== lastUrl) {
         lastUrl = location.href;
         resetModalIfAny();
+        if (window.updateTriggerState) {
+          window.updateTriggerState(false);
+        }
       }
     });
 
